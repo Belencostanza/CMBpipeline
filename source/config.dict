@@ -1,0 +1,230 @@
+{
+    # =========================================================================
+    #  Sky / projection
+    # =========================================================================
+    "mask_type":            "rect",       # "circ" (QUBIC-like disc) or "rect" (SO-like hits mask)
+    "nside":                512,
+    "npixels_x":            704,          # plane grid: nx (circ uses nx for both axes)
+    "npixels_y":            416,
+    "radius_deg":           40,
+    "fact":                 8,            # margin factor used in calculate_res_margin / proj_2d
+
+    # =========================================================================
+    #  CMB signal
+    # =========================================================================
+    "r":                    0.034,
+    "lmin":                 4,
+    "lmax":                 1000,
+
+    # fiducial cosmology (CAMB), shared by make_true_maps.py, compute_namaster.py, run_cobaya_bb.py
+    "cosmo_fid": {
+        "H0":    67.5,
+        "ombh2": 0.022,
+        "omch2": 0.122,
+        "tau":   0.06,
+        "ns":    0.965,
+        "As":    2e-9,
+        "mnu":   0.06,
+    },
+    # Planck 1-sigma shifts applied to the "cosmo" true spectrum when cosmo_pert = False
+    "cosmo_sigma": {
+        "H0":    0.42,
+        "ombh2": 0.00015,
+        "omch2": 0.0012,
+        "tau":   0.0,
+        "ns":    0.0042,
+        "mnu":   0.0,
+    },
+
+    # =========================================================================
+    #  Binning (utilities.compute_bins_fractional), shared by every estimator
+    # =========================================================================
+    "binning": {
+        "frac":        0.2,
+        "min_width":   20,
+        "extra_edges": None,          # e.g. [43] to add an extra edge
+        "label":       "newbin5",     # tag used in fisher_mean*/bias_mean* output names
+    },
+
+    # =========================================================================
+    #  Beam
+    # =========================================================================
+    "fwhm_arcmin":          23.0,
+
+    # =========================================================================
+    #  Noise
+    # =========================================================================
+    "noise_type":           "inho",       # "ho" or "inho"
+    "inho_type":            "inho2",      # circ: None/"elliptical" ; rect: "inho2"/"freq145"/"freq93"
+    "DEFAULT_NOISE_LEVEL":  5e-7,
+    "noise_pix":            0.0467,       # pixel variance used in real-space loss (circ mask) only necessary for "ho" case
+    "nsims_inho2d":         100,          # noise realizations used by make_variance_map.py
+
+    # =========================================================================
+    #  Rescaling factor (mask-type dependent)
+    # =========================================================================
+    # circ alternatives: 0.7616 (inho), 0.7775638 (margin4), 0.7885 (margin8),
+    #                    0.8429 (margin8+apo), 0.7863 (margin8+inho), 0.7857 (margin8+inho sim)
+    # rect alternatives: 0.7876, 0.6377 (145GHz), 1.1178 (93GHz), 0.8338 (nofreq), 0.8382 (nx != ny)
+    "map_rescale_factor": {
+        "circ": 0.7857,
+        "rect": 0.8382,
+    },
+
+    # =========================================================================
+    #  Training
+    # =========================================================================
+    "epochs":               200,
+    "loss_j3":              True,
+    "batch_size":           1,
+    "smooth":               True,
+    "apo":                  False,
+
+    # =========================================================================
+    #  Dataset sizes
+    # =========================================================================
+    "nsims_train":          1000,
+    "nsims_valid":          100,
+    "nsims_test":           30,
+
+    # =========================================================================
+    #  Folders
+    # =========================================================================
+    # Every relative folder/file below is resolved against root_folder.
+    # Output folders are created automatically by config_loader.load_config().
+    "root_folder":          "/home/bcostanza/wf-curve/pol/",
+    "data_folder":          "/data/bcostanza/curve/",                         # train/valid .pt, sims, fisher-modes .h5
+    "aux_folder":           "aux/",                                           # var maps, apodized masks, noise bias, NaMaster workspaces, covariances
+    "study_folder":         "studies/",                                       # optuna sqlite .db files
+    "chains_folder":        "chains/",                                        # cobaya chains
+    "model_folder":         "/home/bcostanza/wf-curve/pol/optuna/models200_plnj3_geo_nCMB_r03_beam_proj2d_eq_maskSOnofreq_rad40_margin8_inhosim2_sinnorm_res_arcmin/",
+    "loss_folder":          "/home/bcostanza/wf-curve/pol/optuna/losses200_plnj3_geo_nCMB_r03_beam_proj2d_eq_maskSOnofreq_rad40_margin8_inhosim2_sinnorm_res_arcmin/",
+    "result_folder":        "/home/bcostanza/wf-curve/pol/optuna/results200_plnj3_geo_nCMB_r03_beam_proj2d_eq_maskSOnofreq_rad40_margin8_inhosim2_sinnorm_res_arcmin/",
+    "spectrum_folder":      "/home/bcostanza/wf-curve/pol/spectrum/newbin5_margin8_inho_maskSO_res_arcmin/",
+    "study_name":           "plnj3_geo_nCMB_r03_beam_proj2d_eq_maskSOnofreq_rad40_margin8_inhosim2_sinnorm_res_arcmin",
+    "dataset_tag":          "nCMB_r03_geo_beam_proj2d_eq_n512_maskSO_rad40_margin8_inhosim2_nofreq_res_arcmin",
+    "spectrum_tag":         "r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin",
+
+    # =========================================================================
+    #  Sky-mask input files (read by projections.sph_mask)
+    # =========================================================================
+    "mask_files": {
+        "qubic":   "/home/bcostanza/wf-curve/qubic-like/test_nside256_belen_None.pkl",   # QUBIC coverage (circ mask centre)
+        "so_hits": "/home/bcostanza/wf-curve/SO-like/norm_nHits_SA_35FOV_ns512.fits",     # SO hits map (rect mask)
+    },
+
+    # =========================================================================
+    #  Auxiliary arrays (mask-type dependent; a plain string is also accepted)
+    # =========================================================================
+    # 2D variance map of the projected inhomogeneous noise  -> aux_folder
+    # generated by make_variance_map.py, read by make_dataset / compute_fisher / compute_bias / make_true_maps
+    "inho2d_file": {
+        "circ": "var_map_sims100.npy",
+        "rect": "var_map_sims100_SO_inho2_res_arcmin.npy",
+    },
+    # apodized sky mask used when apo = True                 -> aux_folder
+    # generated by make_apodized_mask.py (aposize = namaster["scale"])
+    "apo_mask_file": {
+        "circ": "guassian_apodization0.8_mask.npy",
+        "rect": "guassian_apodization0.8_maskSO.npy",
+    },
+    # precomputed noise realizations + psi on the sphere     -> data_folder
+    # read by compute_fisher.py / compute_bias.py
+    "fisher_modes_file": {
+        "circ": "nCMB_fisher1_beam_proj2d_eq_n512_mask_rad40_inho.h5",
+        "rect": "nCMB_fisher1_beam_proj2d_eq_n512_maskSO_rad40_inho_hitsSO.h5",
+    },
+
+    # =========================================================================
+    #  OQE reduction (reduce_fisher.py / reduce_bias.py)
+    # =========================================================================
+    "oqe": {
+        "nsamples_fisher": 2000,      # realizations averaged -> fisher_mean{N}_..._newbin5_...
+        "nsamples_bias":   2000,      # realizations averaged -> bias_mean{N}_..._newbin5_...
+    },
+
+    # =========================================================================
+    #  True power spectrum evaluation (make_true_maps.py)
+    # =========================================================================
+    # r = 0.023, 0.025, 0.028
+    # As_new = 1.02*As = 2.04e-09, 1.03*As = 2.0600000000000003e-09, 1.01*As = 2.02e-09
+    # file_sph = "sims1_cltrue023_1.02As_sph_inhosim2.npy"
+    # file_pt = "El_true023_1.02As_n200_margin8_bin5_inhosim2"
+    # result_name = "El_true023_1.02As_n200_margin8_bin5_inhosim2"
+    "true_maps": {
+        "spectrum_model": "alens",    # "alens": r_new*clBB_prim + Alens_new*clBB_lens ; "cosmo": CAMB con r_new, As_new y cosmologia +sigma
+        "r_new":         0.028,
+        "Alens_new":     0.975,       # amplitud de lensing del true (solo "alens")
+        "As_new":        2.00e-09,            #2.06e-9,    # 1.02 fiducial As (2e-9) (solo "cosmo")
+        "cosmo_pert":    False,       # fractional perturbation applied to H0, ombh2, etc. (solo "cosmo")
+        "file_sph":      "sims1_cltrue028_sigmaAl_sph_inhosim2_maskSO_hitsSO.npy",                # -> data_folder
+        "file_pt":       "sims1_cltrue028_sigmaAl_eq_margin8_inhosim2_maskSO_hitsSO_res_arcmin.pt", # -> data_folder
+        "result_name":   "El_true028_sigmaAl_n1_margin8_bin5_inhosim2_maskSO_hitsSO_res_arcmin",    # -> spectrum_folder (.npz)
+        "make_data_sph": True,
+        "make_data_pln": False,
+        "nsims":         1,
+    },
+
+    # =========================================================================
+    #  NaMaster analysis (make_noise_bias.py, compute_namaster.py)
+    # =========================================================================
+    "namaster": {
+        "spectrum_model":  "alens",   # "alens": r_new*clBB_prim + Alens_new*clBB_lens ; "cosmo": CAMB con r_new, As_new y cosmologia +sigma
+        "r_new":           0.028,
+        "Alens_new":       0.975,     # amplitud de lensing del true (solo "alens")
+        "As_new":          2.00e-09,    # 1.01 fiducial As (2e-9) (solo "cosmo")
+        "cosmo_pert":      False,     # (solo "cosmo")
+        "name_result":     "estimations_r028_sigmaAl_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO",   # -> spectrum_folder (.npz)
+        "name_data":       "sims1_cltrue028_sigmaAl_sph_inhosim2_maskSO_hitsSO.npy",                         # -> data_folder
+        "name_coupling":   "w22_bin5_r028_sigmaAl_maskSOapo3_inho2_hitsSO.fits",                             # -> aux_folder
+        "name_noise_bias": "noise_bias_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO.npy",              # -> aux_folder (make_noise_bias.py)
+        "nsims":            1,
+        "nsims_noise_bias": 100,      # noise realizations averaged in make_noise_bias.py
+        "generate_sims":    False,
+        "read_matrix":      False,    # True: read name_coupling ; False: compute and write it
+        "purify_b":         True,
+        "scale": {                    # apodization scale (deg) of the NaMaster mask, also used by make_apodized_mask.py
+            "circ": 0.8,
+            "rect": 3,
+        },
+    },
+
+    # =========================================================================
+    #  Covariance matrices (make_covariance.py)  -> cobaya["datafile"] in aux_folder
+    # =========================================================================
+    # Sample covariances of the OQE (El + fisher + bias -> correction_modified) and
+    # of the NaMaster estimations, computed over the sims of a dedicated run
+    # (r = 0.025 + sigma in the paper). Files are read from spectrum_folder.
+    "covariance": {
+        "nsims":              200,
+        "oqe_El":             "El_true025_plusigma_n200_margin8_bin5_inhosim2_maskSO_hitsSO_res_arcmin.npz",
+        "oqe_fisher":         ["fisher_mean2000_bb_newbin5_k1_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
+                               "fisher_mean2000_bb_newbin5_k0_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy"],
+        "oqe_bias":           "bias_mean2000_bb_newbin5_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
+        "master_estimation":  "estimations200_r025_plusigma_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO.npz",
+    },
+
+    # =========================================================================
+    #  Cobaya MCMC (run_cobaya_bb.py)
+    # =========================================================================
+    "cobaya": {
+        "datafile":    "SO_covariances.h5",     # h5 con las covarianzas -> aux_folder (make_covariance.py)
+        "estimator":   "oqe",                   # "master" o "oqe"
+
+        # Cl_dato: estimaciones sobre sims generadas con (r_new, Alens_new)
+        # por make_true_maps.py (OQE) y compute_namaster.py (NaMaster). All in spectrum_folder.
+        # npz de compute_namaster.py (arr_1 = media de las sims):
+        "master_estimation": "estimations200_r028_Alens1025_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO.npz",
+        # npz de make_true_maps.py (arr_1 = El BB) + fisher (k1 y k0, se promedian) + bias:
+        "oqe_El":     "El_true028_sigmaAl_n1_margin8_bin5_inhosim2_maskSO_hitsSO_res_arcmin.npz",
+        "oqe_fisher": ["fisher_mean2000_bb_newbin5_k1_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
+                       "fisher_mean2000_bb_newbin5_k0_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy"],
+        "oqe_bias":   "bias_mean2000_bb_newbin5_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
+        "output":      "SOoqe_r028_sigmaAl/bb_oqe",   # prefijo de las cadenas de salida -> chains_folder
+        "rminus1":     0.003,                    # criterio de convergencia R-1
+        "max_samples": None,                    # None = corre hasta converger
+        "resume":      True,                    # continua cadenas existentes
+        "lmax_theory": 2000,                    # lmax del Cl teorico (como el notebook)
+    },
+
+}
