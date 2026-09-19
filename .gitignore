@@ -1,0 +1,17 @@
+__pycache__/
+.ipynb_checkpoints/
+
+# tutorial: downloaded products and anything the notebook writes
+tutorial/data/
+tutorial/output/
+tutorial_data.tar.gz
+
+# job logs
+source/logs/
+
+# figures exported by the analysis notebooks (only the .ipynb are versioned)
+notebooks/*.png
+notebooks/*.pdf
+
+# local report of the tutorial set-up (not for the public repository)
+tutorial/REPORT.md

@@ -109,8 +109,8 @@
     #  Sky-mask input files (read by projections.sph_mask)
     # =========================================================================
     "mask_files": {
-        "qubic":   "/home/bcostanza/wf-curve/qubic-like/test_nside256_belen_None.pkl",   # QUBIC coverage (circ mask centre)
-        "so_hits": "/home/bcostanza/wf-curve/SO-like/norm_nHits_SA_35FOV_ns512.fits",     # SO hits map (rect mask)
+        "qubic":   "/home/belen/Doctorado/qubic/qubic-soft/qubic/scripts/MapMaking/src/FMM/test_nside256_belen/maps/test_nside256_belen_None.pkl",   # QUBIC coverage (circ mask centre)
+        "so_hits": "/home/belen/Doctorado/ML/curvesky/polarizacion/norm_nHits_SA_35FOV_ns512.fits",     # SO hits map (rect mask)
     },
 
     # =========================================================================
@@ -163,6 +163,8 @@
         "make_data_sph": True,
         "make_data_pln": False,
         "nsims":         1,
+        "cmb_seed":      None,        # int for a reproducible CMB realization (None = random)
+        "noise_seed":    None,        # int for a reproducible noise realization (None = random)
     },
 
     # =========================================================================

@@ -1,0 +1,201 @@
+{
+    # =========================================================================
+    #  Tutorial configuration
+    # =========================================================================
+    # Same keys as source/config.dict, set up for the SO-like (rect) mask with
+    # inhomogeneous noise used in the paper.  Every relative folder below hangs
+    # from root_folder, which is relative to THIS file, so the tutorial runs
+    # from any clone of the repository once tutorial/data/ has been downloaded
+    # (see tutorial/get_tutorial_data.sh).
+    #
+    # Pretrained products (computed on a cluster, NOT recomputed here):
+    #   data/models/   network weights of the best Optuna trial
+    #   data/studies/  Optuna study (sqlite) -> selects the best trial
+    #   data/spectrum/ Fisher matrix and noise bias of the OQE (2000 sims each)
+    #   data/aux/      2D variance map of the noise, cobaya covariances,
+    #                  NaMaster noise bias
+    #   data/masks/    SO-like hits map
+    # Anything the tutorial writes goes to output/.
+
+    # =========================================================================
+    #  Sky / projection
+    # =========================================================================
+    "mask_type":            "rect",
+    "nside":                512,
+    "npixels_x":            704,
+    "npixels_y":            416,
+    "radius_deg":           40,
+    "fact":                 8,
+
+    # =========================================================================
+    #  CMB signal
+    # =========================================================================
+    "r":                    0.034,
+    "lmin":                 4,
+    "lmax":                 1000,
+
+    "cosmo_fid": {
+        "H0":    67.5,
+        "ombh2": 0.022,
+        "omch2": 0.122,
+        "tau":   0.06,
+        "ns":    0.965,
+        "As":    2e-9,
+        "mnu":   0.06,
+    },
+    "cosmo_sigma": {
+        "H0":    0.42,
+        "ombh2": 0.00015,
+        "omch2": 0.0012,
+        "tau":   0.0,
+        "ns":    0.0042,
+        "mnu":   0.0,
+    },
+
+    # =========================================================================
+    #  Binning
+    # =========================================================================
+    "binning": {
+        "frac":        0.2,
+        "min_width":   20,
+        "extra_edges": None,
+        "label":       "newbin5",
+    },
+
+    # =========================================================================
+    #  Beam
+    # =========================================================================
+    "fwhm_arcmin":          23.0,
+
+    # =========================================================================
+    #  Noise
+    # =========================================================================
+    "noise_type":           "inho",
+    "inho_type":            "inho2",
+    "DEFAULT_NOISE_LEVEL":  5e-7,
+    "noise_pix":            0.0467,
+    "nsims_inho2d":         100,
+
+    # =========================================================================
+    #  Rescaling factor (must match the one used to train the network)
+    # =========================================================================
+    "map_rescale_factor": {
+        "circ": 0.7857,
+        "rect": 0.8382,
+    },
+
+    # =========================================================================
+    #  Training (not run in the tutorial; kept for reference)
+    # =========================================================================
+    "epochs":               200,
+    "loss_j3":              True,
+    "batch_size":           1,
+    "smooth":               True,
+    "apo":                  False,
+
+    "nsims_train":          1000,
+    "nsims_valid":          100,
+    "nsims_test":           30,
+
+    # =========================================================================
+    #  Folders (relative to this file)
+    # =========================================================================
+    "root_folder":          "./",
+    "data_folder":          "output/",
+    "aux_folder":           "data/aux/",
+    "study_folder":         "data/studies/",
+    "chains_folder":        "output/chains/",
+    "model_folder":         "data/models/",
+    "loss_folder":          "output/losses/",
+    "result_folder":        "output/results/",
+    "spectrum_folder":      "data/spectrum/",
+    "study_name":           "plnj3_geo_nCMB_r03_beam_proj2d_eq_maskSOnofreq_rad40_margin8_inhosim2_sinnorm_res_arcmin",
+    "dataset_tag":          "nCMB_r03_geo_beam_proj2d_eq_n512_maskSO_rad40_margin8_inhosim2_nofreq_res_arcmin",
+    "spectrum_tag":         "r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin",
+
+    "mask_files": {
+        "qubic":   "data/masks/test_nside256_belen_None.pkl",   # only needed for mask_type = "circ"
+        "so_hits": "data/masks/norm_nHits_SA_35FOV_ns512.fits",
+    },
+
+    "inho2d_file": {
+        "circ": "var_map_sims100.npy",
+        "rect": "var_map_sims100_SO_inho2_res_arcmin.npy",
+    },
+    "apo_mask_file": {
+        "circ": "guassian_apodization0.8_mask.npy",
+        "rect": "guassian_apodization0.8_maskSO.npy",
+    },
+    "fisher_modes_file": {
+        "circ": "nCMB_fisher1_beam_proj2d_eq_n512_mask_rad40_inho.h5",
+        "rect": "nCMB_fisher1_beam_proj2d_eq_n512_maskSO_rad40_inho_hitsSO.h5",
+    },
+
+    # =========================================================================
+    #  OQE (precomputed Fisher matrix / noise bias in data/spectrum/)
+    # =========================================================================
+    "oqe": {
+        "nsamples_fisher": 2000,
+        "nsamples_bias":   2000,
+    },
+
+    # =========================================================================
+    #  "True" simulations evaluated in the tutorial
+    # =========================================================================
+    "true_maps": {
+        "spectrum_model": "alens",
+        "r_new":          0.028,
+        "Alens_new":      1.0,
+        "As_new":         2.00e-09,
+        "cosmo_pert":     False,
+        "file_sph":       "tutorial_sims_sph.npy",
+        "file_pt":        "tutorial_sims_pln.pt",
+        "result_name":    "tutorial_El_true",
+        "make_data_sph":  True,
+        "make_data_pln":  False,
+        "nsims":          1,
+        "cmb_seed":       1234,
+        "noise_seed":     5678,
+    },
+
+    # =========================================================================
+    #  NaMaster (optional comparison at the end of the tutorial)
+    # =========================================================================
+    "namaster": {
+        "spectrum_model":  "alens",
+        "r_new":           0.028,
+        "Alens_new":       1.0,
+        "As_new":          2.00e-09,
+        "cosmo_pert":      False,
+        "name_result":     "tutorial_namaster",
+        "name_data":       "tutorial_sims_sph.npy",
+        "name_coupling":   "../../output/tutorial_w22.fits",
+        "name_noise_bias": "noise_bias_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO.npy",
+        "nsims":            1,
+        "nsims_noise_bias": 100,
+        "generate_sims":    False,
+        "read_matrix":      False,
+        "purify_b":         True,
+        "scale": {
+            "circ": 0.8,
+            "rect": 3,
+        },
+    },
+
+    # =========================================================================
+    #  Cobaya (short MCMC on the tutorial estimate)
+    # =========================================================================
+    "cobaya": {
+        "datafile":    "SO_covariances.h5",
+        "estimator":   "oqe",
+        "oqe_fisher":  ["fisher_mean2000_bb_newbin5_k1_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
+                        "fisher_mean2000_bb_newbin5_k0_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy"],
+        "oqe_bias":    "bias_mean2000_bb_newbin5_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
+        "output":      "tutorial/bb_oqe",
+        "rminus1":     0.002,
+        "max_samples": 50000,
+        "resume":      False,
+        "lmax_theory": 2000,
+    },
+
+}
