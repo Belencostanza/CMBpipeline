@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-URL="https://github.com/Belencostanza/CMBtorch/releases/download/tutorial-data-v1/tutorial_data.tar.gz"
+URL="https://github.com/Belencostanza/CMBpipeline/releases/download/tutorial-data-v1/tutorial_data.tar.gz"
 SHA256="f8a829aa43f6141586ffd1ca8884f01faffd63086957efd149d30a9e5e7cd83b"
 
 cd "$(dirname "$0")"

@@ -75,7 +75,7 @@ Steps 3 to 5 require a cluster: the job scripts are in ``slurm`` (``data.sh``, `
 
 # Tutorial: 
 
-The notebook ``tutorial/tutorial.ipynb`` runs the whole pipeline on one simulation, in about a minute on a laptop. Training the network and computing the fisher matrix and noise bias require a cluster, so the tutorial uses the products already computed for the SO-like case. They are not stored in the repository: they are in the release [tutorial-data-v1](https://github.com/Belencostanza/CMBtorch/releases/tag/tutorial-data-v1) (``tutorial_data.tar.gz``, ~40 MB), which contains:
+The notebook ``tutorial/tutorial.ipynb`` runs the whole pipeline on one simulation, in about a minute on a laptop. Training the network and computing the fisher matrix and noise bias require a cluster, so the tutorial uses the products already computed for the SO-like case. They are not stored in the repository: they are in the release [tutorial-data-v1](https://github.com/Belencostanza/CMBpipeline/releases/tag/tutorial-data-v1) (``tutorial_data.tar.gz``, ~40 MB), which contains:
 
 - the trained network (best Optuna trial) and its Optuna study,
 - the fisher matrix and noise bias (2000 simulations each),
