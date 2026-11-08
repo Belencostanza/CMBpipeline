@@ -19,6 +19,15 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 cd "${SLURM_SUBMIT_DIR}/source"
 
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
-# estimator, output and convergence are set in config.dict -> "cobaya".
+# run_cobaya_bb.py fits ONE realization per call (--estimator, --realization);
+# output prefix and convergence are set in config.dict -> "cobaya".
+# Choose estimator and realizations at submission, e.g.
+#   sbatch --export=ALL,ESTIMATOR=master,FIRST=0,LAST=199 slurm/job_cobaya_bb.sh
 # If the job hits the time limit, resubmit: with "resume": True the chains continue.
-srun python run_cobaya_bb.py
+ESTIMATOR=${ESTIMATOR:-oqe}
+FIRST=${FIRST:-0}
+LAST=${LAST:-0}
+for i in $(seq ${FIRST} ${LAST}); do
+    echo "${ESTIMATOR} realization ${i}"
+    srun python run_cobaya_bb.py --estimator ${ESTIMATOR} --realization ${i} || exit 1
+done

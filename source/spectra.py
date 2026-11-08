@@ -11,8 +11,16 @@ import numpy as np
 import utilities
 
 
-def fiducial_spectrum(cfg):
-    """(cltt, clee, clbb) of the fiducial model (utilities.components_spectrum_cosmo defaults)."""
+def fiducial_spectrum(cfg, iterated=True):
+    """
+    (cltt, clee, clbb) of the fiducial model (utilities.components_spectrum_cosmo defaults).
+
+    If cfg["fid_iter"] is set and iterated=True, the fiducial is the iterated one:
+    CAMB with r = fid_iter["r"] and lensing amplitude Alens = fid_iter["Alens"].
+    """
+    it = cfg.get("fid_iter")
+    if iterated and it is not None:
+        return utilities.components_spectrum_cosmo(r=it["r"], Alens=it["Alens"])
     return utilities.components_spectrum_cosmo()
 
 
@@ -33,7 +41,8 @@ def true_spectrum(cfg, section):
     fid = cfg["cosmo_fid"]
     r_fid = cfg["r"]
 
-    clfid_tt, clfid_ee, clfid_bb = fiducial_spectrum(cfg)
+    # the true spectrum never depends on the OQE fiducial iteration
+    clfid_tt, clfid_ee, clfid_bb = fiducial_spectrum(cfg, iterated=False)
 
     spectrum_model = section["spectrum_model"]
     r_new = section["r_new"]

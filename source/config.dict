@@ -12,7 +12,13 @@
     # =========================================================================
     #  CMB signal
     # =========================================================================
-    "r":                    0.034,
+    "r":                    0.034,        # r_fid; also r_ref of the cobaya templates and of the "true" spectra
+
+    # Iterated OQE fiducial: None -> fiducial (r, Alens = 1).
+    # {"r": ..., "Alens": ...} -> CAMB fiducial with that r and lensing amplitude, used by
+    # compute_fisher.py, compute_bias.py, make_true_maps.py (El) and run_cobaya_bb.py (Cl_fid).
+    # iter 1: mean of the OQE posterior means, 200 sims r=0.031, Alens=0.985 (fid r=0.034, Alens=1)
+    "fid_iter":             None,      # fiditer1 was {"r": 0.031146, "Alens": 0.996463} (config_fiditer1.dict)
     "lmin":                 4,
     "lmax":                 1000,
 
@@ -109,8 +115,8 @@
     #  Sky-mask input files (read by projections.sph_mask)
     # =========================================================================
     "mask_files": {
-        "qubic":   "/home/belen/Doctorado/qubic/qubic-soft/qubic/scripts/MapMaking/src/FMM/test_nside256_belen/maps/test_nside256_belen_None.pkl",   # QUBIC coverage (circ mask centre)
-        "so_hits": "/home/belen/Doctorado/ML/curvesky/polarizacion/norm_nHits_SA_35FOV_ns512.fits",     # SO hits map (rect mask)
+        "qubic":   "/home/bcostanza/wf-curve/qubic-like/test_nside256_belen_None.pkl",   # QUBIC coverage (circ mask centre)
+        "so_hits": "/home/bcostanza/wf-curve/SO-like/norm_nHits_SA_35FOV_ns512.fits",     # SO hits map (rect mask)
     },
 
     # =========================================================================
@@ -152,38 +158,38 @@
     # file_pt = "El_true023_1.02As_n200_margin8_bin5_inhosim2"
     # result_name = "El_true023_1.02As_n200_margin8_bin5_inhosim2"
     "true_maps": {
-        "spectrum_model": "alens",    # "alens": r_new*clBB_prim + Alens_new*clBB_lens ; "cosmo": CAMB con r_new, As_new y cosmologia +sigma
-        "r_new":         0.028,
-        "Alens_new":     0.975,       # amplitud de lensing del true (solo "alens")
-        "As_new":        2.00e-09,            #2.06e-9,    # 1.02 fiducial As (2e-9) (solo "cosmo")
+        "spectrum_model": "cosmo",    # "alens": r_new*clBB_prim + Alens_new*clBB_lens ; "cosmo": CAMB con r_new, As_new y cosmologia +sigma
+        "r_new":         0.025,       # covariance set (paper "power spectrum estimation"): r=0.025 + Planck 1sigma, Alens=1
+        "Alens_new":     1.0,         # amplitud de lensing del true (solo "alens")
+        "As_new":        2.03e-09,            #2.06e-9,    # 1.02 fiducial As (2e-9) (solo "cosmo")
         "cosmo_pert":    False,       # fractional perturbation applied to H0, ombh2, etc. (solo "cosmo")
-        "file_sph":      "sims1_cltrue028_sigmaAl_sph_inhosim2_maskSO_hitsSO.npy",                # -> data_folder
-        "file_pt":       "sims1_cltrue028_sigmaAl_eq_margin8_inhosim2_maskSO_hitsSO_res_arcmin.pt", # -> data_folder
-        "result_name":   "El_true028_sigmaAl_n1_margin8_bin5_inhosim2_maskSO_hitsSO_res_arcmin",    # -> spectrum_folder (.npz)
+        "file_sph":      "sims200_cltrue025_plusigma_spin2_sph_inhosim2_maskSO_hitsSO.npy",   # spin2: Q/U beam smoothing fixed                # -> data_folder
+        "file_pt":       "sims200_cltrue025_plusigma_spin2_eq_margin8_inhosim2_maskSO_hitsSO_res_arcmin.pt", # -> data_folder
+        "result_name":   "El_true025_plusigma_spin2_n200_margin8_bin5_inhosim2_maskSO_hitsSO_res_arcmin",    # -> spectrum_folder (.npz)
         "make_data_sph": True,
         "make_data_pln": False,
-        "nsims":         1,
-        "cmb_seed":      None,        # int for a reproducible CMB realization (None = random)
-        "noise_seed":    None,        # int for a reproducible noise realization (None = random)
+        "nsims":         200,
+        "cmb_seed":      None, 
+        "noise_seed":     None,
     },
 
     # =========================================================================
     #  NaMaster analysis (make_noise_bias.py, compute_namaster.py)
     # =========================================================================
     "namaster": {
-        "spectrum_model":  "alens",   # "alens": r_new*clBB_prim + Alens_new*clBB_lens ; "cosmo": CAMB con r_new, As_new y cosmologia +sigma
-        "r_new":           0.028,
-        "Alens_new":       0.975,     # amplitud de lensing del true (solo "alens")
-        "As_new":          2.00e-09,    # 1.01 fiducial As (2e-9) (solo "cosmo")
+        "spectrum_model":  "cosmo",   # "alens": r_new*clBB_prim + Alens_new*clBB_lens ; "cosmo": CAMB con r_new, As_new y cosmologia +sigma
+        "r_new":           0.025,     # covariance set: r=0.025 + Planck 1sigma, Alens=1
+        "Alens_new":       1.0,       # amplitud de lensing del true (solo "alens")
+        "As_new":          2.03e-09,    # 1.01 fiducial As (2e-9) (solo "cosmo")
         "cosmo_pert":      False,     # (solo "cosmo")
-        "name_result":     "estimations_r028_sigmaAl_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO",   # -> spectrum_folder (.npz)
-        "name_data":       "sims1_cltrue028_sigmaAl_sph_inhosim2_maskSO_hitsSO.npy",                         # -> data_folder
-        "name_coupling":   "w22_bin5_r028_sigmaAl_maskSOapo3_inho2_hitsSO.fits",                             # -> aux_folder
+        "name_result":     "estimations200_r025_plusigma_spin2_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO",   # -> spectrum_folder (.npz)
+        "name_data":       "sims200_cltrue025_plusigma_spin2_sph_inhosim2_maskSO_hitsSO.npy",                         # -> data_folder
+        "name_coupling":   "w22_bin5_r031_minussigmaAl_maskSOapo3_inho2_hitsSO.fits",                             # -> aux_folder
         "name_noise_bias": "noise_bias_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO.npy",              # -> aux_folder (make_noise_bias.py)
-        "nsims":            1,
+        "nsims":            200,
         "nsims_noise_bias": 100,      # noise realizations averaged in make_noise_bias.py
         "generate_sims":    False,
-        "read_matrix":      False,    # True: read name_coupling ; False: compute and write it
+        "read_matrix":      True,     # coupling only depends on mask/binning/beam: reuse the r031 one    # True: read name_coupling ; False: compute and write it
         "purify_b":         True,
         "scale": {                    # apodization scale (deg) of the NaMaster mask, also used by make_apodized_mask.py
             "circ": 0.8,
@@ -199,30 +205,32 @@
     # (r = 0.025 + sigma in the paper). Files are read from spectrum_folder.
     "covariance": {
         "nsims":              200,
-        "oqe_El":             "El_true025_plusigma_n200_margin8_bin5_inhosim2_maskSO_hitsSO_res_arcmin.npz",
+        "oqe_El":             "El_true025_plusigma_spin2_n200_margin8_bin5_inhosim2_maskSO_hitsSO_res_arcmin.npz",
         "oqe_fisher":         ["fisher_mean2000_bb_newbin5_k1_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
                                "fisher_mean2000_bb_newbin5_k0_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy"],
         "oqe_bias":           "bias_mean2000_bb_newbin5_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
-        "master_estimation":  "estimations200_r025_plusigma_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO.npz",
+        "master_estimation":  "estimations200_r025_plusigma_spin2_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO.npz",
     },
 
     # =========================================================================
     #  Cobaya MCMC (run_cobaya_bb.py)
     # =========================================================================
     "cobaya": {
-        "datafile":    "SO_covariances.h5",     # h5 con las covarianzas -> aux_folder (make_covariance.py)
-        "estimator":   "oqe",                   # "master" o "oqe"
+        "datafile":    "SO_covariances_spin2.h5",   # spin-2 covariance set (old: SO_covariances.h5)     # h5 con las covarianzas -> aux_folder (make_covariance.py)
+        # el estimador ("oqe" o "master") y la realizacion se pasan por linea de comandos:
+        #   python run_cobaya_bb.py --estimator oqe --realization 0
 
         # Cl_dato: estimaciones sobre sims generadas con (r_new, Alens_new)
         # por make_true_maps.py (OQE) y compute_namaster.py (NaMaster). All in spectrum_folder.
         # npz de compute_namaster.py (arr_1 = media de las sims):
-        "master_estimation": "estimations200_r028_Alens1025_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO.npz",
+        "master_estimation": "estimations200_r034_Al1_spin2_namaster_mean_nopureb_bin5_maskSOapo3_inho2_hitsSO.npz",
         # npz de make_true_maps.py (arr_1 = El BB) + fisher (k1 y k0, se promedian) + bias:
-        "oqe_El":     "El_true028_sigmaAl_n1_margin8_bin5_inhosim2_maskSO_hitsSO_res_arcmin.npz",
+        # true = fiducial test (r=0.034, Alens=1), original fisher/bias
+        "oqe_El":     "El_true034_Al1_spin2_n200_margin8_bin5_inhosim2_maskSO_hitsSO_res_arcmin.npz",
         "oqe_fisher": ["fisher_mean2000_bb_newbin5_k1_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
                        "fisher_mean2000_bb_newbin5_k0_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy"],
         "oqe_bias":   "bias_mean2000_bb_newbin5_r03_margin8_bin5_inho2_maskSO_hitsSO_res_arcmin.npy",
-        "output":      "SOoqe_r028_sigmaAl/bb_oqe",   # prefijo de las cadenas de salida -> chains_folder
+        "output":      "SO_r034_Al1_spin2_200sims/bb",   # prefijo de las cadenas de salida -> chains_folder
         "rminus1":     0.003,                    # criterio de convergencia R-1
         "max_samples": None,                    # None = corre hasta converger
         "resume":      True,                    # continua cadenas existentes

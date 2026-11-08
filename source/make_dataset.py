@@ -172,8 +172,9 @@ class make_dataset:
         umap = qumaps[2]
 
         if beam == True:
-            mapQ_smooth = hp.smoothing(qmap, self.fwhm)
-            mapU_smooth = hp.smoothing(umap, self.fwhm)
+            # spin-2 smoothing (beam on E/B alm), as in PowerSpectrum (bias/fisher sims);
+            # smoothing Q and U as scalar maps leaks E into B near the poles
+            _, mapQ_smooth, mapU_smooth = hp.smoothing([tmap, qmap, umap], self.fwhm, pol=True)
             return tmap, mapQ_smooth, mapU_smooth
         else:
             return tmap, qmap, umap

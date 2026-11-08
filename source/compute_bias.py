@@ -35,7 +35,10 @@ study_name      = cfg["study_name"]
 # precomputed psi on the sphere (config: fisher_modes_file -> data_folder)
 fisher_modes    = cfg["fisher_modes_path"]
 
-_, clee_ang, clbb_ang = utilities.signal_spectrum(r=cfg["r"])
+# fiducial: (r, Alens=1), or the iterated (r, Alens) of config "fid_iter"
+fid_iter = cfg["fid_iter"] or {"r": cfg["r"], "Alens": 1.0}
+print("fiducial r, Alens:", fid_iter["r"], fid_iter["Alens"])
+_, clee_ang, clbb_ang = utilities.signal_spectrum(r=fid_iter["r"], Alens=fid_iter["Alens"])
 ele = np.arange(len(clee_ang))
 bin_edges = bin_edges(cfg)
 print(bin_edges)

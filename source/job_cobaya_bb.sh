@@ -19,9 +19,16 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
 mkdir -p logs chains
 
-# todo el input (estimador, output, convergencia) se define en config.dict,
-# seccion "cobaya"
-srun python run_cobaya_bb.py
-
+# run_cobaya_bb.py ajusta UNA realizacion por llamada (--estimator, --realization);
+# output y convergencia se definen en config.dict, seccion "cobaya".
+# Estimador y realizaciones se eligen al enviar, por ejemplo:
+#   sbatch --export=ALL,ESTIMATOR=master,FIRST=0,LAST=199 job_cobaya_bb.sh
 # Si el job se corta por tiempo, relanzar tal cual: con "resume": True en
 # config.dict las cadenas continuan desde donde quedaron.
+ESTIMATOR=${ESTIMATOR:-oqe}
+FIRST=${FIRST:-0}
+LAST=${LAST:-0}
+for i in $(seq ${FIRST} ${LAST}); do
+    echo "${ESTIMATOR} realization ${i}"
+    srun python run_cobaya_bb.py --estimator ${ESTIMATOR} --realization ${i} || exit 1
+done

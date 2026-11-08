@@ -1,4 +1,22 @@
 #!/usr/bin/env python
+
+"""
+Run Cobaya inference for one individual realization.
+
+Examples
+--------
+OQE:
+    python run_cobaya_bb.py --estimator oqe --realization 0
+
+NaMaster:
+    python run_cobaya_bb.py --estimator master --realization 0
+
+MPI:
+    mpirun -n 4 python run_cobaya_bb.py --estimator oqe --realization 0
+
+Each realization gets an independent Cobaya output.
+"""
+
 """
 MCMC con Cobaya para (r, Alens) a partir del espectro BB binneado.
 
@@ -19,7 +37,10 @@ simulaciones generadas con (r, Alens) "true" distintos de los fiduciales
 
   - "oqe":    El_true de make_true_maps.py + fisher + bias, combinados con
               utilities.correction_modified (igual que el notebook).
-  - "master": media de las estimaciones de compute_namaster.py.
+  - "master": estimacion de compute_namaster.py (arr_0) para esa realizacion.
+
+Cada corrida ajusta UNA realizacion (--realization i) con el estimador elegido
+(--estimator oqe|master); las cadenas van a <dir de cobaya.output>/bb_{est}_sim{i:02d}.
 
 La covarianza (master u oqe) se lee del .h5 generado por make_covariance.py.
 
@@ -27,24 +48,56 @@ Agregado para correr en cluster: output a disco con resume — si el job se
 corta, se relanza el mismo script y las cadenas continuan desde donde
 quedaron.
 
-Todo el input se define en config.dict, seccion "cobaya". Los archivos se
+El resto del input se define en config.dict, seccion "cobaya". Los archivos se
 resuelven en config_loader: datafile -> aux_folder, estimaciones/fisher/bias
 -> spectrum_folder, output -> chains_folder.
 
-Correr local:             python run_cobaya_bb.py
-Correr en cluster (MPI):  mpirun -n 4 python run_cobaya_bb.py
+Correr local:             python run_cobaya_bb.py --estimator oqe --realization 0
+Correr en cluster (MPI):  mpirun -n 4 python run_cobaya_bb.py --estimator oqe --realization 0
                           (cada proceso corre una cadena; requiere mpi4py)
 """
 
 import os
+import argparse
 
 import numpy as np
 import h5py
 
 import utilities
 from config_loader import load_config, bin_edges
+from spectra import fiducial_spectrum
 
 from cobaya.run import run
+
+
+# ============================================================================
+# COMMAND LINE
+# ============================================================================
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument(
+    "--estimator",
+    type=str,
+    choices=["oqe", "master"],
+    required=True,
+    help="Estimator used for the inference."
+)
+
+parser.add_argument(
+    "--realization",
+    type=int,
+    required=True,
+    help="Realization index: 0, ..., nsims-1."
+)
+
+args = parser.parse_args()
+
+estimator = args.estimator
+ireal = args.realization
+
+if ireal < 0:
+    raise ValueError("realization must be >= 0")
 
 # ================= CONFIG =================================================
 
@@ -53,7 +106,6 @@ cob = cfg["cobaya"]
 paths = cfg["cobaya_paths"]
 
 datafile    = paths["datafile"]
-estimator   = cob["estimator"]      # "master" o "oqe"
 output      = paths["output"]
 lmax_theory = cob["lmax_theory"]
 
@@ -95,32 +147,104 @@ def Clbb_theory_binned(r, Alens):
 # make_true_maps.py (OQE) o compute_namaster.py (NaMaster), igual que en el
 # notebook.
 
+# ============================================================================
+# DATA
+# ============================================================================
+
+print()
+print("=" * 70)
+print(f"Estimator   : {estimator}")
+print(f"Realization : {ireal}")
+print("=" * 70)
+print()
+
 if estimator == "master":
 
-    # npz de compute_namaster.py: arr_0 = sims, arr_1 = media, arr_2 = desv
     est_master = np.load(paths["master_estimation"])
-    Cl_dato = est_master["arr_1"][:nbins]
+
+    # arr_0 contains the individual realizations
+    master_all = est_master["arr_0"]
+
+    print("NaMaster estimations shape:", master_all.shape)
+
+    if ireal >= master_all.shape[0]:
+        raise ValueError(
+            f"Requested realization {ireal}, "
+            f"but only {master_all.shape[0]} realizations exist."
+        )
+
+    # Select ONE realization
+    Cl_dato = master_all[ireal, :nbins]
 
 elif estimator == "oqe":
 
     # npz de make_true_maps.py: arr_0 = EE, arr_1 = BB
-    El_true_bb = np.load(paths["oqe_El"])["arr_1"]
+    El_true_bb_all = np.load(paths["oqe_El"])["arr_1"]
+
+    print("OQE El shape:", El_true_bb_all.shape)
+
+    if ireal >= El_true_bb_all.shape[0]:
+        raise ValueError(
+            f"Requested realization {ireal}, "
+            f"but only {El_true_bb_all.shape[0]} realizations exist."
+        )
 
     # fisher: promedio de las perturbaciones +0.5 / -0.5 (k1 y k0)
     fisher = np.mean([np.load(f) for f in paths["oqe_fisher"]], axis=0)
 
     bias = np.load(paths["oqe_bias"])
 
-    # expansion alrededor del fiducial (r_fid, Alens=1), como el notebook
-    clbb_bin_fid = Clbb_theory_binned(r_fid, 1.0)
+    if cfg["fid_iter"] is None:
+        # expansion alrededor del fiducial (r_fid, Alens=1), como el notebook
+        clbb_bin_fid = Clbb_theory_binned(r_fid, 1.0)
+    else:
+        # expansion alrededor del fiducial iterado (CAMB con r, Alens de fid_iter),
+        # el mismo usado para el fisher, el bias y El
+        _, _, clfid_bb = fiducial_spectrum(cfg)
+        _, clbb_bin_fid, _ = utilities.bineado(np.arange(len(clfid_bb)), clfid_bb, bin_frac)
+        print("fiducial iterado r, Alens:", cfg["fid_iter"]["r"], cfg["fid_iter"]["Alens"])
+
+    # ------------------------------------------------------------------------
+    # Select ONE realization
+    #
+    # Keep first dimension:
+    #
+    # (nsims, nbins) -> (1, nbins)
+    # ------------------------------------------------------------------------
+
+    El_true_bb = El_true_bb_all[ireal:ireal + 1]
 
     Cl_dato, _, _ = utilities.correction_modified(El_true_bb, bias, fisher,
                                                   clbb_bin_fid,
-                                                  nsamples=El_true_bb.shape[0],
+                                                  nsamples=1,
                                                   nbins=nbins)
+    print("Cl_dato shape:", Cl_dato.shape)
 
 else:
     raise ValueError(f"cobaya.estimator must be 'master' or 'oqe', got '{estimator}'")
+
+# ============================================================================
+# OUTPUT
+# ============================================================================
+
+# Use the directory defined in config, but make an independent chain
+# for every estimator and realization.
+
+output_base = paths["output"]
+
+output_dir = os.path.dirname(output_base)
+
+if not output_dir:
+    output_dir = "."
+
+
+output = os.path.join(
+    output_dir,
+    f"bb_{estimator}_sim{ireal:02d}"
+)
+
+print("Cobaya output:", output)
+print()
 
 # ================= LIKELIHOOD ==============================================
 # Cobaya lee (r, Alens) de la firma de la funcion; no hay theory block.
@@ -180,8 +304,12 @@ if cob.get("max_samples") is not None:
 
 # ================= RUN =====================================================
 
-outdir = os.path.dirname(output)
-if outdir:
-    os.makedirs(outdir, exist_ok=True)
+os.makedirs(output_dir, exist_ok=True)
+
+
+print("=" * 70)
+print("Starting Cobaya")
+print("=" * 70)
+print()
 
 updated_info, sampler = run(info)

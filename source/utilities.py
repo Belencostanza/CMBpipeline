@@ -35,10 +35,12 @@ def components_spectrum_cosmo(
     tau=0.06,
     ns=0.965,
     As=2e-9,
-    mnu=0.06):
+    mnu=0.06,
+    Alens=1.0):
     
+    # Alens: CAMB lensing amplitude (1 = standard; != 1 for the iterated OQE fiducial)
     pars = camb.CAMBparams()
-    pars.set_cosmology(H0=H0, ombh2=ombh2, omch2=omch2, mnu=mnu, omk=0, tau=0.06)
+    pars.set_cosmology(H0=H0, ombh2=ombh2, omch2=omch2, mnu=mnu, omk=0, tau=0.06, Alens=Alens)
     pars.InitPower.set_params(As=As, ns=ns, r=r)
     pars.set_for_lmax(7000, lens_potential_accuracy=1)
     pars.WantTensors = True
@@ -184,12 +186,13 @@ def correction_modified(El_true, bl, fisher, cl_bin_fid, nsamples, nbins):
     return estimation, correction_desv, correction
 
 
-def signal_spectrum(r=0.034):
+def signal_spectrum(r=0.034, Alens=1.0):
 
     #use CAMB to simulate the fiducial power spectrum
+    #Alens: CAMB lensing amplitude (1 = standard; != 1 for the iterated OQE fiducial)
 
     pars = camb.CAMBparams()
-    pars.set_cosmology(H0=67.5, ombh2=0.022, omch2=0.122, mnu=0.06, omk=0, tau=0.06)
+    pars.set_cosmology(H0=67.5, ombh2=0.022, omch2=0.122, mnu=0.06, omk=0, tau=0.06, Alens=Alens)
     pars.InitPower.set_params(As=2e-9, ns=0.965, r=r)
     pars.set_for_lmax(7000, lens_potential_accuracy=1)
     pars.WantTensors = True

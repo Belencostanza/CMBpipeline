@@ -69,6 +69,7 @@ DEFAULTS = {
     "cosmo_sigma": {"H0": 0.42, "ombh2": 0.00015, "omch2": 0.0012, "tau": 0.0,
                     "ns": 0.0042, "mnu": 0.0},
     "oqe": {"nsamples_fisher": 2000, "nsamples_bias": 2000},
+    "fid_iter": None,      # iterated OQE fiducial {"r", "Alens"}; None = (r, Alens=1)
 }
 
 # Output folders that load_config() creates when create_dirs=True.
