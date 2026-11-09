@@ -115,8 +115,12 @@
     #  Sky-mask input files (read by projections.sph_mask)
     # =========================================================================
     "mask_files": {
-        "qubic":   "/home/bcostanza/wf-curve/qubic-like/test_nside256_belen_None.pkl",   # QUBIC coverage (circ mask centre)
-        "so_hits": "/home/bcostanza/wf-curve/SO-like/norm_nHits_SA_35FOV_ns512.fits",     # SO hits map (rect mask)
+        # a path or a list of candidate paths: the first one that exists is used,
+        # so the same config works on the cluster and locally
+        "qubic":   ["/home/bcostanza/wf-curve/qubic-like/test_nside256_belen_None.pkl",       # QUBIC coverage (circ mask centre)
+                    "/home/belen/Doctorado/qubic/qubic-soft/qubic/scripts/MapMaking/src/FMM/test_nside256_belen/maps/test_nside256_belen_None.pkl"],
+        "so_hits": ["/home/bcostanza/wf-curve/SO-like/norm_nHits_SA_35FOV_ns512.fits",        # SO hits map (rect mask)
+                    "/home/belen/Doctorado/ML/curvesky/polarizacion/norm_nHits_SA_35FOV_ns512.fits"],
     },
 
     # =========================================================================

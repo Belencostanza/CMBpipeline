@@ -54,7 +54,7 @@ The dictionary input ``source/config.dict`` include these parameters:
 - ``root_folder``, ``data_folder``, ``aux_folder``, ``study_folder``, ``chains_folder``: paths where the dataset, auxiliary files, Optuna studies and chains are stored.
 - ``model_folder``, ``loss_folder``, ``result_folder``, ``spectrum_folder``: paths where the models, losses, results and power spectrum products are stored.
 - ``study_name``, ``dataset_tag``, ``spectrum_tag``: names of the Optuna study, the dataset and the power spectrum products.
-- ``mask_files``: path of the QUBIC-like coverage and the SO-like hits map.
+- ``mask_files``: path of the QUBIC-like coverage and the SO-like hits map (a single path or a list of candidate paths; the first existing one is used, so one config can serve the cluster and a local machine).
 - ``oqe``: number of simulations used to estimate the noise bias term and the fisher matrix.
 - ``true_maps``: "true" power spectrum (``r_new``, ``Alens_new``), number of simulations and seeds used by ``make_true_maps.py``.
 - ``namaster``: parameters of the NaMaster estimation.

@@ -132,6 +132,21 @@ def as_file(folder, name):
     return os.path.join(folder, name)
 
 
+def first_existing_file(folder, names):
+    """
+    A single name or a list of candidate names (e.g. the same input file on the
+    cluster and on a laptop): return the first one that exists, else the first one
+    (so that the error raised later names a meaningful path).
+    """
+    if isinstance(names, str):
+        names = [names]
+    paths = [as_file(folder, n) for n in names]
+    for p in paths:
+        if os.path.exists(p):
+            return p
+    return paths[0]
+
+
 # --------------------------------------------------------------------------- #
 # main
 # --------------------------------------------------------------------------- #
@@ -206,8 +221,9 @@ def load_config(path=None, create_dirs=True):
     cfg["result_path"] = as_file(cfg["result_folder"], f"results{epochs}_{study}.pt")
     cfg["study_db"]    = "sqlite:///" + as_file(cfg["study_folder"], f"{study}.db")
 
-    cfg["qubic_path"]        = as_file(root, cfg["mask_files"]["qubic"])
-    cfg["so_hits_path"]      = as_file(root, cfg["mask_files"]["so_hits"])
+    # mask inputs: a path or a list of candidate paths (first existing one is used)
+    cfg["qubic_path"]        = first_existing_file(root, cfg["mask_files"]["qubic"])
+    cfg["so_hits_path"]      = first_existing_file(root, cfg["mask_files"]["so_hits"])
     cfg["inho2d_path"]       = as_file(cfg["aux_folder"], cfg["inho2d_file"])
     cfg["apo_mask_path"]     = as_file(cfg["aux_folder"], cfg["apo_mask_file"])
     cfg["fisher_modes_path"] = as_file(cfg["data_folder"], cfg["fisher_modes_file"])
